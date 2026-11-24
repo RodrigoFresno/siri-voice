@@ -1,4 +1,4 @@
-const CACHE_NAME = 'liquid-glass-voice-lab-v8';
+const CACHE_NAME = 'liquid-glass-voice-lab-v9';
 const APP_SHELL = [
   './',
   './index.html',
