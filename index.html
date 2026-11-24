@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#10121b">
+<meta name="description" content="Experiência Liquid Glass interativa com ondas luminosas reativas à voz.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Voice Lab">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="64x64" href="./assets/favicon-64.png">
+<link rel="apple-touch-icon" href="./assets/apple-touch-icon.png">
+<title>Liquid Glass Voice Lab</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#090b12;color:#f3f4f7;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overscroll-behavior:none}
+#stage{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 42%,#303747 0%,#171c2a 44%,#090b12 100%);touch-action:none}
+#gl{width:100%;height:100%;display:block;touch-action:none}
+.topbar{position:fixed;top:calc(12px + env(safe-area-inset-top));left:15px;right:15px;display:flex;justify-content:space-between;align-items:center;pointer-events:none;text-shadow:0 1px 10px #0008}
+.brand{font-size:10px;font-weight:750;letter-spacing:.2em;color:#f4f5f8}.status{font-size:9px;letter-spacing:.14em;color:#c5c8d0}.status i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#91e5c4;box-shadow:0 0 10px #91e5c4;margin-right:7px}
+.panel{position:fixed;left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));max-height:48vh;padding:10px 12px calc(10px + env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;background:linear-gradient(155deg,#202536e8,#0c101bf5);border:1px solid #ffffff25;border-radius:20px;backdrop-filter:blur(24px) saturate(145%);-webkit-backdrop-filter:blur(24px) saturate(145%);box-shadow:0 -15px 50px #0005}
+.panelhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}.panelhead strong{font-size:11px;letter-spacing:.1em;background:linear-gradient(90deg,#b9f3ff,#d5baff 58%,#ffb7d8);-webkit-background-clip:text;background-clip:text;color:transparent}.sub{font-size:9px;color:#aeb2bd}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px}
+button,.upload{font:600 10px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#f2f3f7;background:#ffffff0d;border:1px solid #ffffff24;border-radius:10px;padding:9px 11px;cursor:pointer;white-space:nowrap}
+button:active,.upload:active{background:#ffffff25}button.primary{background:linear-gradient(135deg,#b5e8ff30,#c9b3ff25);border-color:#c7eaff70}button.on{background:#74d9b51c;border-color:#8de9c17a}
+.upload input{display:none}
+.group{border-top:1px solid #ffffff17;padding:9px 0 2px}.gtitle{font-size:9px;color:#aeb4c2;letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 13px}.control{min-width:0}.control label{display:flex;justify-content:space-between;gap:6px;font-size:9px;color:#e0e2e8;margin-bottom:4px}.control output{color:#9bcaff;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;height:15px;margin:0;accent-color:#9edbff;touch-action:pan-y}
+.meterline{display:flex;align-items:center;gap:8px;margin:9px 0 3px}.meterline span{font-size:8px;letter-spacing:.14em;color:#b9bfca}.meter{height:3px;background:#ffffff1c;border-radius:5px;flex:1;overflow:hidden}.meter b{display:block;height:100%;width:0;background:linear-gradient(90deg,#79ddff,#c6a8ff,#ffb5d2)}
+.note{text-align:center;font-size:8px;color:#aeb4c16b;margin-top:8px}
+@media(min-width:760px){.panel{left:auto;right:18px;top:50%;bottom:auto;transform:translateY(-50%);width:300px;max-height:82vh;border:1px solid #ffffff24;border-radius:18px}.grid{grid-template-columns:1fr}.topbar{left:22px;right:22px}}
+</style></head>
+<body>
+<div id="stage"><canvas id="gl"></canvas></div>
+<div class="topbar"><div class="brand">LIQUID GLASS · VOICE LAB</div><div class="status"><i></i><span id="state">READY</span></div></div>
+<section class="panel" id="panel">
+ <div class="panelhead"><strong>CONTROLES DO LIQUID GLASS</strong><span class="sub">toque e arraste o vidro</span></div>
+ <div class="actions">
+  <button id="mic" class="primary">◉ Ativar microfone</button>
+  <button id="wave" class="on">Ondas: ligadas</button>
+  <label class="upload">＋ Imagem de fundo<input id="photo" type="file" accept="image/*"></label>
+  <button id="bgreset">Fundo original</button>
+  <button id="reset">Redefinir</button>
+ </div>
+ <div class="meterline"><span>ÁUDIO</span><div class="meter"><b id="meter"></b></div><span id="level">0.00</span></div>
+ <div class="group"><div class="gtitle">Fundo</div><div class="grid">
+  <div class="control"><label>Intensidade do fundo <output id="vBG">55%</output></label><input id="BG" type="range" min="15" max="90" value="55"></div>
+ </div></div>
+ <div class="group"><div class="gtitle">Forma e posição</div><div class="grid">
+  <div class="control"><label>Escala geral <output id="vSC">1.00</output></label><input id="SC" type="range" min="30" max="170" value="100"></div>
+  <div class="control"><label>Posição horizontal <output id="vPX">0.50</output></label><input id="PX" type="range" min="5" max="95" value="50"></div>
+  <div class="control"><label>Posição vertical <output id="vPY">0.48</output></label><input id="PY" type="range" min="8" max="88" value="48"></div>
+  <div class="control"><label>Largura <output id="vHX">0.37</output></label><input id="HX" type="range" min="15" max="65" value="37"></div>
+  <div class="control"><label>Altura <output id="vHY">0.25</output></label><input id="HY" type="range" min="8" max="48" value="25"></div>
+  <div class="control"><label>Cantos arredondados <output id="vCR">1.00</output></label><input id="CR" type="range" min="0" max="100" value="100"></div>
+ </div><div class="note">Um dedo move · dois dedos redimensionam</div></div>
+ <div class="group"><div class="gtitle">Lente e refração</div><div class="grid">
+  <div class="control"><label>Zoom <output id="vZM">1.02</output></label><input id="ZM" type="range" min="100" max="150" value="102"></div>
+  <div class="control"><label>Largura da banda <output id="vBD">170</output></label><input id="BD" type="range" min="60" max="500" value="170"></div>
+  <div class="control"><label>Cápsula esférica <output id="vDM">0.40</output></label><input id="DM" type="range" min="0" max="100" value="40"></div>
+  <div class="control"><label aberração>Aberração de cor <output id="vAB">10</output></label><input id="AB" type="range" min="0" max="40" value="10"></div>
+  <div class="control"><label>Desfoque do fundo <output id="vBL">1.8</output></label><input id="BL" type="range" min="0" max="40" value="18"></div>
+ </div></div>
+ <div class="group"><div class="gtitle">Camada escura superior</div><div class="grid">
+  <div class="control"><label>Intensidade da área preta <output id="vTD">0.93</output></label><input id="TD" type="range" min="0" max="100" value="93"></div>
+  <div class="control"><label>Ponto inicial da zona negra <output id="vB0">-1.00</output></label><input id="B0" type="range" min="-100" max="80" value="-100"></div>
+  <div class="control"><label>Fim da zona negra <output id="vB1">-0.01</output></label><input id="B1" type="range" min="-50" max="120" value="-1"></div>
+ </div></div>
+ <div class="group"><div class="gtitle">Bordas e ondas luminosas</div><div class="grid">
+  <div class="control"><label>Linha de borda <output id="vEB">0.11</output></label><input id="EB" type="range" min="0" max="200" value="11"></div>
+  <div class="control"><label>Brilho da onda <output id="vWV">1.90</output></label><input id="WV" type="range" min="0" max="300" value="190"></div>
+  <div class="control"><label>Escala da onda <output id="vWS">0.85</output></label><input id="WS" type="range" min="20" max="150" value="85"></div>
+  <div class="control"><label>Sensibilidade da voz <output id="vGN">2.00</output></label><input id="GN" type="range" min="50" max="400" value="200"></div>
+ </div></div>
+</section>
+<div id="installHint" style="position:fixed;left:50%;top:calc(42px + env(safe-area-inset-top));transform:translateX(-50%);padding:7px 11px;border:1px solid #ffffff20;border-radius:999px;background:#101522b8;color:#cbd5e8;font-size:9px;letter-spacing:.04em;white-space:nowrap;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);pointer-events:none">LIQUID GLASS · VOICE REACTIVE</div>
+<script>
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+
+(()=>{
+const cv=document.getElementById('gl'),gl=cv.getContext('webgl',{alpha:false,antialias:true,preserveDrawingBuffer:false});
+const state=document.getElementById('state');if(!gl){state.textContent='WEBGL INDISPONÍVEL';return}
+const vs=`attribute vec2 aPos;void main(){gl_Position=vec4(aPos,0.,1.);}`;
+const fs=`precision highp float;
+uniform vec2 iRes,uHalf,uCenter;uniform sampler2D iBg;
+uniform float iTime,uCorner,uBand,uDome,uAberration,uTopDarken,uBlack0,uBlack1,uEdgeBleed,uWaveAmp,uWaveScale,uZoom,uScale,uBlur;
+uniform vec3 uVoice;uniform float uEnergy;
+float sdRoundRect(vec2 c,vec2 h,float r){vec2 q=abs(c)-(h-vec2(r));return length(max(q,0.))+min(max(q.x,q.y),0.)-r;}
+vec2 gradRect(vec2 c,vec2 h,float r){vec2 q=abs(c)-(h-vec2(r));if(q.x>=0.||q.y>=0.)return sign(c)*normalize(max(q,0.)+1e-6);float gx=step(q.y,q.x);return sign(c)*vec2(gx,1.-gx);}
+float circleMap(float x){return 1.-sqrt(max(1.-x*x,0.));}
+vec3 spectral(int s){float x=float(s);return clamp(vec3(abs(x-3.)-1.,2.-abs(x-2.),2.-abs(x-4.)),0.,1.);}
+vec3 waveCol(vec2 p,float t,float spread){
+ float low=clamp(uVoice.x,0.,1.),mid=clamp(uVoice.y,0.,1.),high=clamp(uVoice.z,0.,1.);
+ float drift=mod(t,62.83)*2.4+uEnergy*2.0;
+ float env=cos(1.5707963*min(abs(.9*p.x),1.));env*=env;
+ float A1=.30+.06*low+uEnergy*.13,A2=A1+mid*.05+high*.06+uEnergy*.07,AB=2.6+mid*.8+high*.5;
+ float th=.03*spread,inten=.01*(2.+low*1.5+uEnergy*2.0),soft=.01*max(0.,2.5+mid*.4+uEnergy)*spread;
+ float yMain=A1*env*sin(p.x*1.1+drift);float bandAmt=26000.*inten;
+ vec3 num=vec3(0.),den=vec3(0.);
+ for(int s=0;s<4;s++){vec3 hue=spectral(s);den+=hue;float ab=mix(-AB,AB,float(s)/3.);float yL=A2*env*sin(p.x+drift+ab);float dd=abs(p.y-yL);float line=inten/(sqrt(dd*dd+soft*soft)+th);float lo=min(yMain,yL),hi=max(yMain,yL);float db=max(0.,max(p.y-hi,lo-p.y));float band=bandAmt/(db+.08);num+=hue*(line+band*0.0001);}
+ vec3 col=num/max(den,vec3(.001));float dm=abs(p.y-yMain);col+=.5*inten/(sqrt(dm*dm+soft*soft)+th);return pow(max(col,0.),vec3(1.5))*exp(-pow(p.x*1.2,2.));
+}
+vec3 sampleBlur(vec2 uv){vec2 px=vec2(uBlur)/iRes;vec3 c=texture2D(iBg,uv).rgb*.227027;c+=texture2D(iBg,uv+vec2(px.x,0.)*1.384615).rgb*.194595;c+=texture2D(iBg,uv-vec2(px.x,0.)*1.384615).rgb*.194595;c+=texture2D(iBg,uv+vec2(0.,px.y)*1.384615).rgb*.194595;c+=texture2D(iBg,uv-vec2(0.,px.y)*1.384615).rgb*.194595;c+=texture2D(iBg,uv+vec2(px.x,0.)*3.230769).rgb*.016216;c+=texture2D(iBg,uv-vec2(px.x,0.)*3.230769).rgb*.016216;return c;}
+void main(){
+ vec2 fc=gl_FragCoord.xy,uv=fc/iRes,uvf=vec2(uv.x,1.-uv.y),c=fc-uCenter;c.y=-c.y;
+ float sd=sdRoundRect(c,uHalf,uCorner);vec3 bg=texture2D(iBg,uvf).rgb;if(sd>1.){gl_FragColor=vec4(bg,1.);return;}sd=min(sd,0.);
+ float x=1.-(-sd/max(uBand,1.));float d=circleMap(clamp(x,0.,1.))*150.;
+ float gr=min(uCorner*1.5,min(uHalf.x,uHalf.y));vec2 grad=normalize(gradRect(c,uHalf,gr)+uDome*1.2*normalize(c+1e-5));vec2 guv=vec2(grad.x,-grad.y);
+ vec2 push=guv*d/iRes,center=vec2(uCenter.x,iRes.y-uCenter.y)/iRes;vec2 suv=uvf+push;suv=center+(suv-center)/uZoom;
+ float dispI=uAberration*((c.x*c.y)/(uHalf.x*uHalf.y))/30.;vec2 disp=guv*d*dispI/iRes;
+ vec3 col;col.r=sampleBlur(suv+disp).r;col.g=sampleBlur(suv).g;col.b=sampleBlur(suv-disp).b;
+ col=mix(col,col*vec3(.94,.96,1.)+vec3(.01,.012,.02),.22);
+ float ny=-c.y/uHalf.y;float black=smoothstep(uBlack0,uBlack1,ny);black=black*black*(3.-2.*black);col=mix(col,vec3(.012,.015,.025),black*uTopDarken);
+ vec3 wglow=vec3(0.);if(uWaveAmp>.001){vec2 cw=(c+vec2(grad.x,-grad.y)*d*.5)/uZoom;vec2 wp=vec2(cw.x/uHalf.x,-cw.y/uHalf.y-uBlack1)/max(uWaveScale,.1);float vis=1.-black*uTopDarken*.85;wglow=waveCol(wp,iTime,7.)*vec3(.8,.95,1.25);float below=smoothstep(.7,-.5,wp.y);col+=(waveCol(wp,iTime,1.)+wglow*(.25+.6*below))*uWaveAmp*vis;}
+ float inner=smoothstep(0.,-18.*uScale,sd);col*=mix(.70,1.,inner);
+ float mid=(uBlack0+uBlack1)*.5;float eq=smoothstep(uBlack0,mid,ny)*smoothstep(uBlack1,mid,ny);float horiz=1.-abs(c.x)/uHalf.x*.3;col+=vec3(.95,.97,1.)*eq*horiz*uEdgeBleed;
+ float rim=smoothstep(-14.*uScale,-2.*uScale,sd)*smoothstep(0.,-.6,-ny);col+=vec3(.85,.88,.95)*rim*uEdgeBleed*.5;col+=wglow*uWaveAmp*(eq*horiz+rim)*.9;
+ float shell=smoothstep(3.*uScale,0.,abs(sd+2.5*uScale));float lit=.3+.7*smoothstep(.3,-.9,ny);col+=(vec3(.10,.11,.13)+wglow*uWaveAmp*1.2)*shell*lit;
+ float aa=smoothstep(1.5,-1.5,sd);col=mix(bg,col,aa);gl_FragColor=vec4(col,1.);
+}`;
+function shader(type,src){let s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s}
+let pr=gl.createProgram();try{gl.attachShader(pr,shader(gl.VERTEX_SHADER,vs));gl.attachShader(pr,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pr);if(!gl.getProgramParameter(pr,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(pr));}catch(e){state.textContent='SHADER ERROR';alert(e.message);return}gl.useProgram(pr);
+let buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);let a=gl.getAttribLocation(pr,'aPos');gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
+const U=n=>gl.getUniformLocation(pr,n),u={res:U('iRes'),half:U('uHalf'),center:U('uCenter'),time:U('iTime'),corner:U('uCorner'),band:U('uBand'),dome:U('uDome'),ab:U('uAberration'),dark:U('uTopDarken'),b0:U('uBlack0'),b1:U('uBlack1'),edge:U('uEdgeBleed'),wave:U('uWaveAmp'),ws:U('uWaveScale'),zoom:U('uZoom'),scale:U('uScale'),blur:U('uBlur'),voice:U('uVoice'),energy:U('uEnergy'),bg:U('iBg')};
+let tex=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.uniform1i(u.bg,0);
+let W=1,H=1,photoAspect=1;
+function makeGradient(darkness=55){let c=document.createElement('canvas');c.width=900;c.height=1600;let x=c.getContext('2d');let g=x.createLinearGradient(0,0,900,1600);g.addColorStop(0,'#62636a');g.addColorStop(.42,'#34363d');g.addColorStop(1,'#15161b');x.fillStyle=g;x.fillRect(0,0,900,1600);let rg=x.createRadialGradient(450,650,40,450,650,850);rg.addColorStop(0,'rgba(205,211,224,.20)');rg.addColorStop(1,'rgba(10,11,15,0)');x.fillStyle=rg;x.fillRect(0,0,900,1600);let shade=Math.max(0,(darkness-35)/110);x.fillStyle='rgba(0,0,0,'+shade.toFixed(3)+')';x.fillRect(0,0,900,1600);return c}
+function uploadImage(img){let c=document.createElement('canvas');c.width=900;c.height=1600;let x=c.getContext('2d');let ar=img.width/img.height,tar=c.width/c.height,sx=0,sy=0,sw=img.width,sh=img.height;if(ar>tar){sw=img.height*tar;sx=(img.width-sw)/2}else{sh=img.width/tar;sy=(img.height-sh)/2}x.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c)}
+function setBg(c){gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c)}
+let p={scale:1,px:.5,py:.48,hx:.37,hy:.25,cr:1,zoom:1.02,band:170,dome:.4,ab:10,blur:1.8,td:.93,b0:-1,b1:-.01,eb:.11,wv:1.9,ws:.85,gain:2,bg:55};
+let bgMode='gradient';
+setBg(makeGradient(p.bg));
+const defs={SC:['scale',.01,x=>x.toFixed(2)],PX:['px',.01,x=>x.toFixed(2)],PY:['py',.01,x=>x.toFixed(2)],HX:['hx',.01,x=>x.toFixed(2)],HY:['hy',.01,x=>x.toFixed(2)],CR:['cr',.01,x=>x.toFixed(2)],ZM:['zoom',.01,x=>x.toFixed(2)],BD:['band',1,x=>x.toFixed(0)],DM:['dome',.01,x=>x.toFixed(2)],AB:['ab',1,x=>x.toFixed(0)],BL:['blur',.1,x=>x.toFixed(1)],TD:['td',.01,x=>x.toFixed(2)],B0:['b0',.01,x=>x.toFixed(2)],B1:['b1',.01,x=>x.toFixed(2)],EB:['eb',.01,x=>x.toFixed(2)],WV:['wv',.01,x=>x.toFixed(2)],WS:['ws',.01,x=>x.toFixed(2)],GN:['gain',.01,x=>x.toFixed(2)],BG:['bg',1,x=>x.toFixed(0)+'%']};
+Object.entries(defs).forEach(([id,[key,mul,fmt]])=>{let el=document.getElementById(id),out=document.getElementById('v'+id);el.addEventListener('input',()=>{p[key]=+el.value*mul;out.textContent=fmt(p[key]);if(key==='bg'&&bgMode==='gradient')setBg(makeGradient(p.bg))})});
+function reset(){bgMode='gradient';Object.entries(defs).forEach(([id,[key]])=>{let el=document.getElementById(id);el.value=({SC:100,PX:50,PY:48,HX:37,HY:25,CR:100,ZM:102,BD:170,DM:40,AB:10,BL:18,TD:93,B0:-100,B1:-1,EB:11,WV:190,WS:85,GN:200,BG:55})[id];el.dispatchEvent(new Event('input'))});p.px=.5;p.py=.48;setBg(makeGradient(p.bg))}
+document.getElementById('reset').onclick=reset;document.getElementById('bgreset').onclick=()=>{bgMode='gradient';setBg(makeGradient(p.bg))};
+document.getElementById('photo').addEventListener('change',e=>{let f=e.target.files&&e.target.files[0];if(!f)return;let url=URL.createObjectURL(f),img=new Image();img.onload=()=>{bgMode='photo';uploadImage(img);URL.revokeObjectURL(url)};img.onerror=()=>{URL.revokeObjectURL(url);alert('Não foi possível abrir essa imagem')};img.src=url});
+let waveOn=true;document.getElementById('wave').onclick=e=>{waveOn=!waveOn;e.currentTarget.classList.toggle('on',waveOn);e.currentTarget.textContent='Onda: '+(waveOn?'ligada':'desligada')};
+let audioCtx=null,analyser=null,stream=null,freq=null,timeData=null,voice=[.2,.2,.2,0],smooth=[.2,.2,.2,0];
+async function startMic(){try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});audioCtx=new(window.AudioContext||window.webkitAudioContext)();await audioCtx.resume();let src=audioCtx.createMediaStreamSource(stream);analyser=audioCtx.createAnalyser();analyser.fftSize=2048;analyser.smoothingTimeConstant=.42;src.connect(analyser);freq=new Uint8Array(analyser.frequencyBinCount);timeData=new Uint8Array(analyser.fftSize);document.getElementById('mic').textContent='■ Parar microfone';document.getElementById('mic').classList.add('on');state.textContent='MICROFONE ATIVO'}catch(e){state.textContent='MICROFONE BLOQUEADO';alert('Abra pelo GitHub Pages (HTTPS), toque em Ativar microfone e permita o acesso quando o Safari solicitar.')}}
+function stopMic(){if(stream)stream.getTracks().forEach(t=>t.stop());if(audioCtx)audioCtx.close();stream=null;audioCtx=null;analyser=null;document.getElementById('mic').textContent='◉ Ativar microfone';document.getElementById('mic').classList.remove('on');state.textContent='READY'}
+document.getElementById('mic').onclick=()=>stream?stopMic():startMic();
+function audio(){let target=[.18,.18,.18,0];if(analyser){analyser.getByteFrequencyData(freq);analyser.getByteTimeDomainData(timeData);let sum=0;for(let v of timeData){let x=(v-128)/128;sum+=x*x}let rms=Math.sqrt(sum/timeData.length);function band(a,b){let s=0,n=0;for(let i=Math.floor(freq.length*a);i<Math.max(1,Math.floor(freq.length*b));i++){s+=freq[i]/255;n++}return s/n}target=[band(0,.08),band(.08,.35),band(.35,.9),Math.min(1,Math.max(0,(rms-.004)*22*p.gain))];target[0]=Math.min(1,target[0]*p.gain);target[1]=Math.min(1,target[1]*p.gain);target[2]=Math.min(1,target[2]*p.gain)}for(let i=0;i<4;i++)smooth[i]+=(target[i]-smooth[i])*(target[i]>smooth[i]?.48:.13);document.getElementById('meter').style.width=(smooth[3]*100)+'%';document.getElementById('level').textContent=smooth[3].toFixed(2);voice=smooth}
+let pointers=new Map(),drag=null,pinch=null;
+function coords(e){let r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height}}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);let q=coords(e);pointers.set(e.pointerId,q);if(pointers.size===1)drag={id:e.pointerId,x:q.x,y:q.y,px:p.px,py:p.py};if(pointers.size===2){let a=[...pointers.values()];pinch={dist:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y),scale:p.scale}}});
+cv.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId))return;let q=coords(e);pointers.set(e.pointerId,q);if(pointers.size===1&&drag){p.px=clamp(drag.px+(q.x-drag.x)*1.0,.05,.95);p.py=clamp(drag.py+(q.y-drag.y)*1.0,.08,.9);syncPos()}if(pointers.size===2&&pinch){let a=[...pointers.values()],d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);p.scale=clamp(pinch.scale*d/Math.max(.001,pinch.dist),.3,1.7);document.getElementById('SC').value=Math.round(p.scale*100);document.getElementById('SC').dispatchEvent(new Event('input'))}});
+function clamp(x,a,b){return Math.max(a,Math.min(b,x))}function syncPos(){for(let [id,key] of [['PX','px'],['PY','py']]){let el=document.getElementById(id);el.value=Math.round(p[key]*100);document.getElementById('v'+id).textContent=p[key].toFixed(2)}}
+function endPointer(e){pointers.delete(e.pointerId);if(pointers.size<2)pinch=null;if(pointers.size===0)drag=null}
+cv.addEventListener('pointerup',endPointer);cv.addEventListener('pointercancel',endPointer);
+function resize(){let d=Math.min(devicePixelRatio||1,2);let w=Math.max(1,Math.round(innerWidth*d)),h=Math.max(1,Math.round(innerHeight*d));if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;gl.viewport(0,0,w,h)}}new ResizeObserver(resize).observe(cv);resize();
+let start=performance.now();
+function frame(now){resize();audio();let w=cv.width,h=cv.height,short=Math.min(w,h);gl.useProgram(pr);gl.uniform2f(u.res,w,h);gl.uniform2f(u.half,w*p.hx*p.scale,w*p.hy*p.scale);gl.uniform2f(u.center,w*p.px,h*(1-p.py));gl.uniform1f(u.corner,Math.min(w*p.hy*p.cr*p.scale,w*p.hx*p.scale,h*p.hy*p.scale));gl.uniform1f(u.time,(now-start)/1000);gl.uniform1f(u.band,p.band*p.scale);gl.uniform1f(u.dome,p.dome);gl.uniform1f(u.ab,p.ab);gl.uniform1f(u.dark,p.td);gl.uniform1f(u.b0,p.b0);gl.uniform1f(u.b1,p.b1);gl.uniform1f(u.edge,p.eb);gl.uniform1f(u.wave,waveOn?p.wv:0);gl.uniform1f(u.ws,p.ws);gl.uniform1f(u.zoom,p.zoom);gl.uniform1f(u.scale,p.scale);gl.uniform1f(u.blur,p.blur*4);gl.uniform3f(u.voice,voice[0],voice[1],voice[2]);gl.uniform1f(u.energy,voice[3]);gl.drawArrays(gl.TRIANGLES,0,3);requestAnimationFrame(frame)}requestAnimationFrame(frame);
+window.addEventListener('beforeunload',stopMic);
+})();
+</script></body></html>
