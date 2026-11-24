@@ -64,6 +64,15 @@ input[type=range]{width:100%;height:16px;margin:0;accent-color:#9edbff;touch-act
  .hero-caption{bottom:42px}
  .grid{grid-template-columns:1fr}
 }
+
+/* Bolha flutuante: permanece dentro da experiência web (não sobrepõe outros apps no iOS). */
+.float-bubble{position:fixed;z-index:20;left:auto;right:22px;top:42%;width:76px;height:76px;border:1px solid #d9f7ff80;border-radius:50%;display:none;place-items:center;touch-action:none;cursor:grab;background:radial-gradient(circle at 32% 25%,#e9fcffb8 0%,#85e8ff88 16%,#a98cff78 43%,#ff9bd65c 68%,#14223b99 100%);box-shadow:inset -8px -10px 22px #080d2580,inset 5px 5px 16px #ffffff70,0 0 24px #91ddff66,0 0 55px #ae8bff33;backdrop-filter:blur(14px) saturate(170%);-webkit-backdrop-filter:blur(14px) saturate(170%);transform:translateZ(0) scale(var(--bubble-scale,1));transition:box-shadow .12s,filter .12s}
+.float-bubble.visible{display:grid}
+.float-bubble:before,.float-bubble:after{content:"";position:absolute;inset:8px;border-radius:50%;border:1px solid #e8fbff66;box-shadow:0 0 16px #a4edff55;pointer-events:none}
+.float-bubble:after{inset:17px;border-color:#ffffff45;filter:blur(1px)}
+.float-bubble .bubble-core{width:27px;height:27px;border-radius:50%;background:radial-gradient(circle at 32% 25%,#ffffff 0%,#bdf6ff 15%,#80cfff 38%,#a78aff 66%,#f7a9df 100%);box-shadow:0 0 18px #a9eaff,0 0 35px #b18bff99;filter:brightness(var(--bubble-bright,1));pointer-events:none}
+.float-bubble-hint{position:fixed;z-index:19;right:18px;top:calc(42% + 48px);display:none;color:#dcecffaa;font-size:8px;letter-spacing:.08em;pointer-events:none;text-shadow:0 1px 8px #000}
+.float-bubble-hint.visible{display:block}
 </style></head>
 <body>
 <div id="stage"><canvas id="gl"></canvas></div>
@@ -79,6 +88,8 @@ input[type=range]{width:100%;height:16px;margin:0;accent-color:#9edbff;touch-act
   <label class="upload">＋ Imagem de fundo<input id="photo" type="file" accept="image/*"></label>
   <button id="bgreset">Fundo original</button>
   <button id="reset">Redefinir</button>
+<button id="floatMode">◈ Bolha flutuante</button>
+
  </div>
  <div class="meterline"><span>ÁUDIO</span><div class="meter"><b id="meter"></b></div><span id="level">0.00</span></div>
  <div class="group"><div class="gtitle">Fundo</div><div class="grid">
@@ -111,6 +122,8 @@ input[type=range]{width:100%;height:16px;margin:0;accent-color:#9edbff;touch-act
   <div class="control"><label>Sensibilidade da voz <output id="vGN">2.00</output></label><input id="GN" type="range" min="50" max="400" value="200"></div>
  </div></div>
 </section>
+
+<div id="floatBubble" class="float-bubble" role="img" aria-label="Bolha Liquid Glass arrastável"><span class="bubble-core"></span></div><div id="floatBubbleHint" class="float-bubble-hint">ARRASTE PARA MOVER</div>
 <div id="installHint" style="position:fixed;left:50%;top:calc(42px + env(safe-area-inset-top));transform:translateX(-50%);padding:7px 11px;border:1px solid #ffffff20;border-radius:999px;background:#101522b8;color:#cbd5e8;font-size:9px;letter-spacing:.04em;white-space:nowrap;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);pointer-events:none">LIQUID GLASS · VOICE REACTIVE</div>
 <script>
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
@@ -187,7 +200,13 @@ let audioCtx=null,analyser=null,stream=null,freq=null,timeData=null,voice=[.2,.2
 async function startMic(){try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});audioCtx=new(window.AudioContext||window.webkitAudioContext)();await audioCtx.resume();let src=audioCtx.createMediaStreamSource(stream);analyser=audioCtx.createAnalyser();analyser.fftSize=2048;analyser.smoothingTimeConstant=.42;src.connect(analyser);freq=new Uint8Array(analyser.frequencyBinCount);timeData=new Uint8Array(analyser.fftSize);document.getElementById('mic').textContent='■ Parar microfone';document.getElementById('mic').classList.add('on');state.textContent='MICROFONE ATIVO'}catch(e){state.textContent='MICROFONE BLOQUEADO';alert('Abra pelo GitHub Pages (HTTPS), toque em Ativar microfone e permita o acesso quando o Safari solicitar.')}}
 function stopMic(){if(stream)stream.getTracks().forEach(t=>t.stop());if(audioCtx)audioCtx.close();stream=null;audioCtx=null;analyser=null;document.getElementById('mic').textContent='◉ Ativar microfone';document.getElementById('mic').classList.remove('on');state.textContent='READY'}
 document.getElementById('mic').onclick=()=>stream?stopMic():startMic();
-function audio(){let target=[.18,.18,.18,0];if(analyser){analyser.getByteFrequencyData(freq);analyser.getByteTimeDomainData(timeData);let sum=0;for(let v of timeData){let x=(v-128)/128;sum+=x*x}let rms=Math.sqrt(sum/timeData.length);function band(a,b){let s=0,n=0;for(let i=Math.floor(freq.length*a);i<Math.max(1,Math.floor(freq.length*b));i++){s+=freq[i]/255;n++}return s/n}target=[band(0,.08),band(.08,.35),band(.35,.9),Math.min(1,Math.max(0,(rms-.004)*22*p.gain))];target[0]=Math.min(1,target[0]*p.gain);target[1]=Math.min(1,target[1]*p.gain);target[2]=Math.min(1,target[2]*p.gain)}for(let i=0;i<4;i++)smooth[i]+=(target[i]-smooth[i])*(target[i]>smooth[i]?.48:.13);document.getElementById('meter').style.width=(smooth[3]*100)+'%';document.getElementById('level').textContent=smooth[3].toFixed(2);voice=smooth}
+function audio(){let target=[.18,.18,.18,0];if(analyser){analyser.getByteFrequencyData(freq);analyser.getByteTimeDomainData(timeData);let sum=0;for(let v of timeData){let x=(v-128)/128;sum+=x*x}let rms=Math.sqrt(sum/timeData.length);function band(a,b){let s=0,n=0;for(let i=Math.floor(freq.length*a);i<Math.max(1,Math.floor(freq.length*b));i++){s+=freq[i]/255;n++}return s/n}target=[band(0,.08),band(.08,.35),band(.35,.9),Math.min(1,Math.max(0,(rms-.004)*22*p.gain))];target[0]=Math.min(1,target[0]*p.gain);target[1]=Math.min(1,target[1]*p.gain);target[2]=Math.min(1,target[2]*p.gain)}for(let i=0;i<4;i++)smooth[i]+=(target[i]-smooth[i])*(target[i]>smooth[i]?.48:.13);document.getElementById('meter').style.width=(smooth[3]*100)+'%';document.getElementById('level').textContent=smooth[3].toFixed(2);voice=smooth}const bubble=document.getElementById('floatBubble');if(bubble){const e=smooth[3],bass=smooth[0],mid=smooth[1],treble=smooth[2];bubble.style.setProperty('--bubble-scale',(1+e*.42+bass*.12).toFixed(3));bubble.style.setProperty('--bubble-bright',(1+mid*.8+treble*.45).toFixed(2));bubble.style.filter='hue-rotate('+Math.round((treble-bass)*35)+'deg) saturate('+(1.15+e*.8)+')';}
+
+const floatToggle=document.getElementById('floatMode'),floatBubble=document.getElementById('floatBubble'),floatHint=document.getElementById('floatBubbleHint');
+floatToggle.addEventListener('click',()=>{const on=!floatBubble.classList.contains('visible');floatBubble.classList.toggle('visible',on);floatHint.classList.toggle('visible',on);floatToggle.classList.toggle('on',on);floatToggle.textContent=on?'◈ Ocultar bolha':'◈ Bolha flutuante';});
+let bubbleDrag=null;floatBubble.addEventListener('pointerdown',e=>{e.preventDefault();floatBubble.setPointerCapture(e.pointerId);const r=floatBubble.getBoundingClientRect();bubbleDrag={dx:e.clientX-r.left,dy:e.clientY-r.top};floatBubble.style.left=r.left+'px';floatBubble.style.top=r.top+'px';floatBubble.style.right='auto';});
+floatBubble.addEventListener('pointermove',e=>{if(!bubbleDrag)return;const x=Math.max(0,Math.min(innerWidth-floatBubble.offsetWidth,e.clientX-bubbleDrag.dx));const y=Math.max(0,Math.min(innerHeight-floatBubble.offsetHeight,e.clientY-bubbleDrag.dy));floatBubble.style.left=x+'px';floatBubble.style.top=y+'px';floatHint.style.left=(x+5)+'px';floatHint.style.top=(y+floatBubble.offsetHeight+5)+'px';floatHint.style.right='auto';});
+function endBubbleDrag(){bubbleDrag=null}floatBubble.addEventListener('pointerup',endBubbleDrag);floatBubble.addEventListener('pointercancel',endBubbleDrag);
 let pointers=new Map(),drag=null,pinch=null;
 function coords(e){let r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height}}
 cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);let q=coords(e);pointers.set(e.pointerId,q);if(pointers.size===1)drag={id:e.pointerId,x:q.x,y:q.y,px:p.px,py:p.py};if(pointers.size===2){let a=[...pointers.values()];pinch={dist:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y),scale:p.scale}}});
