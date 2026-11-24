@@ -71,3 +71,6 @@ O botão **Bolha flutuante** ativa uma esfera Liquid Glass arrastável dentro da
 **Limitação do iOS:** por ser um PWA aberto no Safari/tela inicial, a bolha não pode ficar por cima do aplicativo Spotify nem de outros aplicativos. Ela só aparece dentro da própria tela do Voice Lab. O iOS também não oferece ao site acesso direto ao áudio interno que o Spotify está reproduzindo em outro app. Para testar a reação no iPhone, mantenha o Voice Lab aberto e use o microfone; o microfone capta o som ambiente, não o fluxo digital do Spotify. O projeto não implementa conexão OAuth com Spotify nem sincronização visual com faixas do Spotify.
 
 O microfone é processado localmente em tempo real e não há função de gravar ou salvar conversas.
+
+
+Acesso à bolha: o controle ◈ agora fica visível diretamente na tela principal, no canto superior direito. Toque nele para mostrar/ocultar a bolha e arraste a esfera para reposicioná-la.
