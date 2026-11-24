@@ -27,7 +27,7 @@ jobs:
         run: |
           python3 -m http.server 8000 >/tmp/voice-lab-server.log 2>&1 &
           cat > /tmp/capture-wave.cjs <<'JS'
-          const { chromium } = require('playwright');
+          const { chromium } = require(require('path').join(process.cwd(), 'node_modules', 'playwright'));
           (async () => {
             const browser = await chromium.launch({headless:true, args:['--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
             const page = await browser.newPage({viewport:{width:1024,height:1024}, deviceScaleFactor:1, serviceWorkers:'block'});
