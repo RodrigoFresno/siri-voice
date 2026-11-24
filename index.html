@@ -21,7 +21,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050710;col
 .topbar{position:fixed;top:calc(17px + env(safe-area-inset-top));left:19px;right:19px;display:flex;justify-content:space-between;align-items:center;pointer-events:none;z-index:5;text-shadow:0 1px 15px #000}
 .brand{font-size:11px;font-weight:800;letter-spacing:.08em;color:#e9f4ff;opacity:.72}
 .brand span{background:linear-gradient(90deg,#83edff,#c3a7ff 55%,#ff9fcf);-webkit-background-clip:text;background-clip:text;color:transparent}
-.mode-switch{position:fixed;z-index:6;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;gap:3px;padding:4px;border:1px solid #ffffff22;border-radius:13px;background:#101725b8;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 5px 24px #0006}
+.mode-switch{position:relative;z-index:2;left:auto;top:auto;transform:none;display:flex;align-self:flex-start;gap:3px;padding:4px;margin:0 0 12px;border:1px solid #ffffff22;border-radius:13px;background:#101725b8;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 5px 24px #0006}
 .mode-switch button{padding:7px 11px;border:0;border-radius:9px;background:transparent;color:#aebbd0;font-size:9px;letter-spacing:.07em;font-weight:750}
 .mode-switch button.active{background:linear-gradient(135deg,#8deaff35,#c6a5ff35);color:#f4f7ff;box-shadow:inset 0 0 0 1px #bdeaff40}
 .status{width:9px;height:9px;padding:0;border:0;border-radius:50%;background:transparent;box-shadow:none}
@@ -97,12 +97,12 @@ input[type=range]{width:100%;height:16px;margin:0;accent-color:#9edbff;touch-act
 <body>
 <div id="stage"><canvas id="gl"></canvas></div>
 <div class="topbar"><div class="brand"><span>LG</span></div><div class="status" aria-label="Indicador do microfone"><i></i></div></div>
-<nav class="mode-switch" aria-label="Modo visual"><button id="modeGlass" class="active" type="button">LIQUID GLASS</button><button id="modeDots" type="button">FLUID DOTS</button></nav>
 <button class="open-settings" id="openSettings" aria-label="Abrir configurações"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg> CONFIGURAÇÕES</button>
 <section class="panel" id="panel">
  <div class="panel-grabber"></div>
  <div class="panelhead"><div><strong>PERSONALIZAR EXPERIÊNCIA</strong><div class="sub" style="margin-top:5px">Ajuste o vidro do seu jeito</div></div><button class="close-settings" id="closeSettings" aria-label="Fechar configurações">×</button></div>
  <div class="panel-content">
+ <div class="group"><div class="gtitle">Modo de experiência</div><nav class="mode-switch" aria-label="Alternar entre Siri e Fluid Dots"><button id="modeGlass" class="active" type="button">SIRI</button><button id="modeDots" type="button">FLUID DOTS</button></nav><div class="sub">Escolha a animação exibida na tela</div></div>
  <div class="actions">
   <button id="mic" class="primary">◉ Ativar microfone</button>
   <button id="wave" class="on">Ondas: ligadas</button>
