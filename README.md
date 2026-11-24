@@ -55,3 +55,10 @@ O microfone só funciona em contexto seguro (HTTPS) e enquanto a página/app est
 - Ao publicar atualizações, o service worker pode levar um momento para substituir o cache anterior. Se uma versão antiga continuar aparecendo, feche e reabra o app ou limpe os dados do site no Safari.
 - O iOS pode impor limitações próprias ao áudio em segundo plano; mantenha o app em primeiro plano para usar a reação ao microfone.
 - Os arquivos de referência usados como contexto visual estão descritos no pedido original. Este pacote preserva o shader que já estava no protótipo recebido.
+
+
+## Interface Ambient (atualização)
+
+A tela inicial agora prioriza o efeito em modo imersivo. Use o botão **CONFIGURAÇÕES** na parte inferior para abrir o painel de personalização; o botão × fecha o painel e, no celular, também é possível arrastá-lo para baixo. O painel mantém os controles do shader, incluindo imagem de fundo e microfone.
+
+Ao publicar esta atualização, o cache do service worker foi elevado para v2 para que os dispositivos baixem a nova interface.
