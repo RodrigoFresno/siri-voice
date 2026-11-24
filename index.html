@@ -67,7 +67,7 @@ input[type=range]{width:100%;height:16px;margin:0;accent-color:#9edbff;touch-act
 
 
 /* Acesso direto à bolha na tela principal */
-.float-mode-launch{position:fixed;z-index:13;top:calc(64px + env(safe-area-inset-top));right:17px;width:44px;height:44px;padding:0;display:grid;place-items:center;border-radius:50%;border:1px solid #d5f3ff55;background:linear-gradient(145deg,#b9eaff33,#a98cff30 55%,#ff9fcf24);color:#eaf9ff;font-size:19px;box-shadow:0 5px 24px #0008,inset 0 1px #ffffff40,0 0 20px #9edfff22;backdrop-filter:blur(20px) saturate(170%);-webkit-backdrop-filter:blur(20px) saturate(170%)}
+.float-mode-launch{position:fixed;z-index:13;top:calc(64px + env(safe-area-inset-top));right:17px;min-width:94px;height:40px;padding:0 13px;display:flex;align-items:center;justify-content:center;gap:7px;border-radius:999px;border:1px solid #d5f3ff75;background:linear-gradient(145deg,#b9eaff33,#a98cff30 55%,#ff9fcf24);color:#eaf9ff;font-size:10px;font-weight:750;letter-spacing:.09em;box-shadow:0 5px 24px #0008,inset 0 1px #ffffff40,0 0 20px #9edfff22;backdrop-filter:blur(20px) saturate(170%);-webkit-backdrop-filter:blur(20px) saturate(170%)}
 .float-mode-launch.on{border-color:#adf0ffbd;box-shadow:0 0 20px #85dcff77,inset 0 0 15px #ffffff26}
 /* Bolha flutuante: permanece dentro da experiência web (não sobrepõe outros apps no iOS). */
 .float-bubble{position:fixed;z-index:20;left:auto;right:22px;top:42%;width:76px;height:76px;border:1px solid #d9f7ff80;border-radius:50%;display:none;place-items:center;touch-action:none;cursor:grab;background:radial-gradient(circle at 32% 25%,#e9fcffb8 0%,#85e8ff88 16%,#a98cff78 43%,#ff9bd65c 68%,#14223b99 100%);box-shadow:inset -8px -10px 22px #080d2580,inset 5px 5px 16px #ffffff70,0 0 24px #91ddff66,0 0 55px #ae8bff33;backdrop-filter:blur(14px) saturate(170%);-webkit-backdrop-filter:blur(14px) saturate(170%);transform:translateZ(0) scale(var(--bubble-scale,1));transition:box-shadow .12s,filter .12s}
@@ -83,7 +83,7 @@ input[type=range]{width:100%;height:16px;margin:0;accent-color:#9edbff;touch-act
 <div class="topbar"><div class="brand"><span>LIQUID GLASS</span> · VOICE LAB</div><div class="status"><i></i><span id="state">READY</span></div></div>
 <div class="hero-caption"><strong>AMBIENT EXPERIENCE</strong><small>um universo de luz, vidro e movimento</small></div>
 <button class="open-settings" id="openSettings" aria-label="Abrir configurações"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg> CONFIGURAÇÕES</button>
-<button id="floatMode" class="float-mode-launch" type="button" aria-label="Ativar bolha flutuante" title="Bolha flutuante">◈</button>
+<button id="floatMode" class="float-mode-launch" type="button" aria-label="Ativar bolha flutuante" title="Bolha flutuante">◈ BOLHA</button>
 <section class="panel" id="panel">
  <div class="panel-grabber"></div>
  <div class="panelhead"><div><strong>PERSONALIZAR EXPERIÊNCIA</strong><div class="sub" style="margin-top:5px">Ajuste o vidro do seu jeito</div></div><button class="close-settings" id="closeSettings" aria-label="Fechar configurações">×</button></div>
