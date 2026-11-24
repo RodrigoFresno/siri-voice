@@ -83,10 +83,12 @@ input[type=range]{width:100%;height:16px;margin:0;accent-color:#9edbff;touch-act
  .open-settings:active{transform:translateY(-50%) scale(.94)}
  body.panel-open .open-settings{transform:translateY(calc(-50% + 10px))}
  .credit{display:none}
- .panel{left:8px;right:8px;top:auto;bottom:calc(7px + env(safe-area-inset-bottom));width:min(420px,52vw);height:min(88dvh,360px);max-height:88dvh;padding:9px 12px calc(8px + env(safe-area-inset-bottom));border-radius:19px}
- .panelhead{top:-9px;padding:5px 0 7px;margin-bottom:7px}
+ .panel{left:auto;right:8px;top:auto;bottom:calc(7px + env(safe-area-inset-bottom));width:min(420px,calc(100vw - 16px));height:min(88dvh,360px);max-height:88dvh;padding:9px 12px calc(8px + env(safe-area-inset-bottom));border-radius:19px;transform:none;pointer-events:auto;z-index:20}
+ body.panel-open .panel{left:auto;right:8px;top:auto;bottom:calc(7px + env(safe-area-inset-bottom));transform:none;pointer-events:auto;visibility:visible}
+ .panelhead{top:0;padding:5px 0 7px;margin-bottom:7px;position:relative;z-index:5}
+ .close-settings{position:relative;z-index:6;flex:0 0 30px;pointer-events:auto;touch-action:manipulation}
  .panel-grabber{margin-bottom:6px}
- .panel-content{padding-bottom:4px}
+ .panel-content{padding-bottom:4px;pointer-events:auto}
 }
 </style></head>
 <body>
