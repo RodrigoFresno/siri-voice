@@ -1,0 +1,75 @@
+name: Capture real app wave for icons
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/capture-wave-icon.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+          python3 -m pip install pillow
+      - name: Render the real WebGL wave from the app
+        run: |
+          python3 -m http.server 8000 >/tmp/voice-lab-server.log 2>&1 &
+          cat > /tmp/capture-wave.cjs <<'JS'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({headless:true, args:['--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+            const page = await browser.newPage({viewport:{width:1024,height:1024}, deviceScaleFactor:1, serviceWorkers:'block'});
+            page.on('pageerror', e => console.error('PAGE_ERROR', e.message));
+            await page.goto('http://127.0.0.1:8000/', {waitUntil:'networkidle'});
+            await page.waitForTimeout(1800);
+            await page.evaluate(() => {
+              const set = (id, value) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.value = String(value);
+                el.dispatchEvent(new Event('input', {bubbles:true}));
+              };
+              set('SC', 140);
+              set('HX', 45);
+              set('HY', 32);
+              set('PX', 50);
+              set('PY', 48);
+              set('WV', 250);
+              set('WS', 95);
+              set('waveHue', 18);
+            });
+            await page.waitForTimeout(2400);
+            await page.screenshot({path:'/tmp/voice-wave-full.png'});
+            await browser.close();
+          })().catch(e => { console.error(e); process.exit(1); });
+          JS
+          node /tmp/capture-wave.cjs
+          python3 - <<'PY'
+          from PIL import Image
+          im = Image.open('/tmp/voice-wave-full.png').convert('RGB')
+          # Keep the actual rendered WebGL capsule/wave, with its real app background.
+          im = im.crop((132, 132, 892, 892)).resize((1024, 1024), Image.Resampling.LANCZOS)
+          im.save('assets/icon-512.png', 'PNG', optimize=True)
+          im.resize((192,192), Image.Resampling.LANCZOS).save('assets/icon-192.png','PNG',optimize=True)
+          im.resize((180,180), Image.Resampling.LANCZOS).save('assets/apple-touch-icon.png','PNG',optimize=True)
+          im.resize((64,64), Image.Resampling.LANCZOS).save('assets/favicon-64.png','PNG',optimize=True)
+          PY
+      - name: Commit captured icons
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/icon-512.png assets/icon-192.png assets/apple-touch-icon.png assets/favicon-64.png
+          git commit -m "Atualiza ícones com captura real da onda WebGL" || exit 0
+          git push

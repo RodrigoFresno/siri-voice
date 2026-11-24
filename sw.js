@@ -1,12 +1,12 @@
-const CACHE_NAME = 'liquid-glass-voice-lab-v9';
+const CACHE_NAME = 'liquid-glass-voice-lab-v10';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './assets/favicon-64.png',
-  './assets/icon-192.png',
-  './assets/icon-512.png',
-  './assets/apple-touch-icon.png'
+  './assets/favicon-64.png?v=10',
+  './assets/icon-192.png?v=10',
+  './assets/icon-512.png?v=10',
+  './assets/apple-touch-icon.png?v=10'
 ];
 
 self.addEventListener('install', event => {
