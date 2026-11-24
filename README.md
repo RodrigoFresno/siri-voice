@@ -62,3 +62,12 @@ O microfone só funciona em contexto seguro (HTTPS) e enquanto a página/app est
 A tela inicial agora prioriza o efeito em modo imersivo. Use o botão **CONFIGURAÇÕES** na parte inferior para abrir o painel de personalização; o botão × fecha o painel e, no celular, também é possível arrastá-lo para baixo. O painel mantém os controles do shader, incluindo imagem de fundo e microfone.
 
 Ao publicar esta atualização, o cache do service worker foi elevado para v2 para que os dispositivos baixem a nova interface.
+
+
+## Prévia da bolha flutuante (iPhone)
+
+O botão **Bolha flutuante** ativa uma esfera Liquid Glass arrastável dentro da tela do Voice Lab. Ela reage à energia e às bandas de frequência analisadas pelo microfone, sem criar uma gravação de áudio.
+
+**Limitação do iOS:** por ser um PWA aberto no Safari/tela inicial, a bolha não pode ficar por cima do aplicativo Spotify nem de outros aplicativos. Ela só aparece dentro da própria tela do Voice Lab. O iOS também não oferece ao site acesso direto ao áudio interno que o Spotify está reproduzindo em outro app. Para testar a reação no iPhone, mantenha o Voice Lab aberto e use o microfone; o microfone capta o som ambiente, não o fluxo digital do Spotify. O projeto não implementa conexão OAuth com Spotify nem sincronização visual com faixas do Spotify.
+
+O microfone é processado localmente em tempo real e não há função de gravar ou salvar conversas.
